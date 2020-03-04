@@ -1,125 +1,12 @@
-const pdfLib = require('pdf-lib');
-const Hapi = require('hapi');
-const pg = require('pg');
 const casual = require('casual');
 const Chance = require('chance');
 const chance = new Chance();
 const faker = require('faker');
 const random = require('random');
-const fetch = require("node-fetch");
-const fs = require('fs');
+const callfor = require('callfor');
 const _ = require('lodash');
 
 
-const server = new Hapi.Server({ 
-  host: 'localhost', 
-  port: 3101, 
-}); const launch = async () => {
-  try { 
-      await server.start(); 
-  } catch (err) { 
-      console.error(err);
-      process.exit(1); 
-  }; 
-  console.log(`Server running at ${server.info.uri}`);
-}
-
-const config = {
-  client: 'pg',
-  version: '7.12.1',
-  connection: {
-    host : process.env.POSTGRES_HOST,
-    user : process.env.POSTGRES_USERNAME,
-    password : process.env.POSTGRES_PASSWORD,
-    database : process.env.POSTGRES_DATABASE
-  }
-}
-
-const knex = require('knex')(config);
-
-// const jobPayload = Joi.object().keys({
-//   Name_En: Joi.string().required(),
-//   Name_Bn: Joi.string().allow(null),
-//   OrganizationID: Joi.number().required(),
-//   Code: Joi.string().required()
-// })
-
-// const countryPayload = Joi.object().keys({
-//   Code: Joi.string().length(3).required(),
-//   Name_En: Joi.string().required(),
-//   Name_Bn: Joi.string().required(),
-//   OrganizationID: Joi.number().required()
-// })
-
-// const companyPayload = Joi.object().keys({
-//   Name: Joi.string().required(),
-//   OrganizationID: Joi.number().required(),
-//   CountryCode: Joi.string().required()
-// })
-
-// exports.vacancyInput = Joi.object().keys({
-//   VacancyName: Joi.string().required(),
-//   CountryID: Joi.number().required(),
-//   CompanyID: Joi.number().required(),
-//   OrganizationID: Joi.number().required(),
-//   VacancyJob: Joi.array().items(Joi.object().keys({
-//       JobID: Joi.number().required(),
-//       NumberOfVacancies: Joi.number().required(),
-//       Salary: Joi.number().required()
-//   })).min(1).required()
-// });
-
-const generateVacancy = () => {
-  return {
-    "VacancyName" : casual.title,
-    "CountryID" : random.int(min=18, max=30),
-    "CompanyID" : random.int(min=12, max=24),
-    "OrganizationID": 1,
-    "VacancyJob": [
-      {
-        "JobID" : random.int(min=18, max=30),
-        "NumberOfVacancies": random.int(min=10, max=30),
-        "Salary": random.int(min=30000, max=60000)
-      },
-      {
-        "JobID" : random.int(min=18, max=30),
-        "NumberOfVacancies": random.int(min=10, max=30),
-        "Salary": random.int(min=30000, max=60000)
-      },
-      {
-        "JobID" : random.int(min=18, max=30),
-        "NumberOfVacancies": random.int(min=10, max=30),
-        "Salary": random.int(min=30000, max=60000)
-      }
-    ]
-  }
-}
-
-const generateJob = () => {
-  return {
-    "Name_En": casual.title,
-    "Name_Bn": casual.title,
-    "OrganizationID": 1,
-    "Code": chance.string({length:5})
-  }
-}
-
-const generateCountry = () => {
-  return {
-    "Code" : chance.string({length:3}),
-    "Name_En": casual.country,
-    "Name_Bn": casual.country,
-    "OrganizationID": 1
-  }
-}
-
-const generateCompany = () => {
-  return {
-    "Name" : casual.company_name,
-    "OrganizationID" : 1,
-    "CountryCode": chance.string({length:3}) 
-  }
-}
 let genders = ['male', 'female'];
 let mobile = ['01725593281', '01903701629', '01728082086', '07768473060'];
 let religion = ["Islam", "Hindu", "Buddha", "Christian", "Others"];
@@ -135,7 +22,7 @@ let lastName = ["Islam", "Khan", "Islam", "Momin", "Talukdar", "Hossen", "Jeet C
 let source = ["walking", "mobileweb", "agent"];
 let agent = ["1", "2", "3"];
 
-const genarateCandidate = () => {
+const sampleDataSet = () => {
   return {
       "FirstName": _.sample(firstName),
       "LastName": _.sample(lastName),
@@ -178,24 +65,15 @@ const genarateCandidate = () => {
 
 (async () => {
   try{
-    
     for(let i=0; i<200; i++){
-    let candidateInsertUrl = "http://localhost:7001/peoplepower/api/v1/candidate";
-    //   let countryInsertUrl = "http://localhost:7001/peoplepower/api/v1/country";
-    //   let companyInsertUrl = "http://localhost:7001/peoplepower/api/v1/company";
-    //   let jobInsertUrl = "http://localhost:7001/peoplepower/api/v1/job";
-    //   let vacancyInsertUrl = "http://localhost:7001/peoplepower/api/v1/vacancy";
-
-    let ID = await fetch(candidateInsertUrl, {
-        method: 'POST',
-        body: JSON.stringify(genarateCandidate()),
-        headers: { 'Content-Type': 'application/json' }
-    });
-    
+      let resp = await callfor('http://localhost:7000/candidate', {
+          method: 'POST',
+          body: JSON.stringify(sampleDataSet()),
+          headers: { 'Content-Type': 'application/json' }
+      });
+      console.log(resp);
   } 
 }catch(e){
     console.log(e);
   }
 })();
-
-launch();
